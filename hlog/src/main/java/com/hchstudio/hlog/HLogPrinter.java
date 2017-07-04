@@ -5,7 +5,8 @@ import android.os.Process;
 import android.text.TextUtils;
 
 import com.hchstudio.hlog.alog.Baselog;
-import com.hchstudio.hlog.logfile.BaseLogFileManager;
+import com.hchstudio.hlog.filelog.BaseLogFileManager;
+import com.hchstudio.hlog.fulllog.FullLogManager;
 
 import java.util.Arrays;
 
@@ -21,7 +22,7 @@ public class HLogPrinter implements Printer {
     // 控制台打印日志
     private static Baselog mBaselog = new Baselog();
     // 打印实时日志
-    private static FullLog mFullLog = new FullLog();
+    private static FullLogManager mFullLog = new FullLogManager();
     // 日志实例化
     private BaseLogFileManager mLogFileManager;
 

@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.hchstudio.hlog.HLog;
-import com.hchstudio.hlog.logfile.BaseLogFileManager;
+import com.hchstudio.hlog.filelog.BaseLogFileManager;
 
 import java.util.Arrays;
 
@@ -26,10 +26,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         HLog.setLogFileManager(new BaseLogFileManager(this));
-        HLog.setLogLevel(HLog.MUTWHOLE);
+//        HLog.setLogLevel(HLog.MUTWHOLE);
         HLog.startLog(this);
-        HLog.v("测\n试");
+
+        HLog.v("测试");
+
         i = 0;
         bt_main = (Button) findViewById(R.id.bt_main);
         bt_main.setOnClickListener(this);
@@ -50,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_main:
-//                HLog.v("点击button" + i++);
+                HLog.v("点击button" + i++);
                 break;
         }
     }

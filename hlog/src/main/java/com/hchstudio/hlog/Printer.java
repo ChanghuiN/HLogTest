@@ -2,7 +2,7 @@ package com.hchstudio.hlog;
 
 import android.content.Context;
 
-import com.hchstudio.hlog.logfile.BaseLogFileManager;
+import com.hchstudio.hlog.filelog.BaseLogFileManager;
 
 /**
  * Created by hech on 2017/3/1.

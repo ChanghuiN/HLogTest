@@ -1,23 +1,29 @@
-package com.hchstudio.hlog.logfile;
+package com.hchstudio.hlog.filelog;
 
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.hchstudio.hlog.HLog;
 import com.hchstudio.hlog.HLogUtil;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by hech on 2017/3/8.
  */
 
-public class BaseLogFileManager implements LogFileManager {
+public class BaseLogFileManager implements ILogFile {
 
     private static final String ROOTPATHNAME = "log";
     private static final String FILENAME = "HLog";
@@ -36,33 +42,74 @@ public class BaseLogFileManager implements LogFileManager {
      */
     private static final int MIN_STACK_OFFSET = 6;
 
+    public static final String DateFormat = "yyyy.MM.dd.HH-mm-ss";
+
+    /**
+     * 删除日志，保留最多的文件个数
+     */
+    public static final int LOG_FILE_DELETE_DELAY = 15;
+
+    /**
+     * 日志删除线程
+     */
+    private Thread cleanThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            HLog.i("cleanLog---");
+            File rootFile = new File(rootPath, fileName);
+            if (!rootFile.exists() || !rootFile.isDirectory()) {
+                return;
+            }
+            List<File> files = Arrays.asList(rootFile.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.startsWith(LOG_FILE_PREFIX) && name.endsWith(LOG_FILE_EXTENSION);
+                }
+            }));
+            Collections.sort(files, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    return o1.getName().replace("-", "").compareTo(o2.getName().replace("-", ""));
+                }
+            });
+            if (null != files && files.size() > LOG_FILE_DELETE_DELAY) {
+                for (int i = 0; i < files.size() - LOG_FILE_DELETE_DELAY; i++) {
+                    boolean success = files.get(i).delete();
+                    HLog.d("delete log file:" + files.get(i).getName() + " | success:" + success);
+                }
+            }
+        }
+    });
+
     public BaseLogFileManager(Context context) {
         mContext = context;
         rootPath = context.getExternalFilesDir(ROOTPATHNAME).toString();
         fileName = FILENAME;
         isHasRW = HLogUtil.isHasRWP(context);
+
+        this.cleanLog();
     }
 
     @Override
-    public LogFileManager setFileName(String fileName) {
+    public ILogFile setFileName(String fileName) {
         if (!TextUtils.isEmpty(fileName))
             this.fileName = fileName;
         return this;
     }
 
     @Override
-    public LogFileManager setRootPath(String rootPath) {
+    public ILogFile setRootPath(String rootPath) {
         if (!TextUtils.isEmpty(rootPath))
             this.rootPath = rootPath;
-
         return this;
     }
 
     @Override
     public void saveLog(int pid, int tid, String logLevel, String tag, String msg) {
         if (!isHasRW) {
-            //请求
-
+            isHasRW = HLogUtil.isHasRWP(mContext);
+            if (!isHasRW)
+                return;
         }
 
         File file = new File(rootPath, fileName);
@@ -122,8 +169,8 @@ public class BaseLogFileManager implements LogFileManager {
     }
 
     @Override
-    public void cleanLogDir() {
-
+    public void cleanLog() {
+        cleanThread.start();
     }
 
 }
